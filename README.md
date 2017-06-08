@@ -23,11 +23,11 @@ $ ipython -c 'import disp; disp.uninstall()'
 
 ## Supported objects
 
-the following object will gain superpowers:
+the following objects will gain superpowers:
 
  - `pyspark.context:SparkContext`
  - `pyspark.sql:SparkSession`
 
-## Do you support more objects ? 
+## Do you support more objects? 
 
-Do you want to submit a Pull Request ? 
+Do you want to submit a Pull Request? We'll probably accept it. 🤓
