@@ -6,7 +6,7 @@ def fully_qualified_name(m):
     return (m.__module__ + "." if hasattr(m, "__module__") else "") + m.__class__.__name__
 
 
-def repr_sc(sc):
+def repr_spark_context_html(sc):
     '''
     Carry over from the Spark 2.2.0 _repr_html_ for spark contexts
 
@@ -32,7 +32,7 @@ def repr_sc(sc):
     )
 
 
-def repr_session(session):
+def repr_spark_session_html(session):
     '''
     Carry over from the Spark 2.2.0 _repr_html_ for spark sessions
 
