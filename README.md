@@ -1,6 +1,6 @@
 # Disp
 
-Providing default representations of common objects in Python lang
+Providing default representations of common objects in Python land
 
 ![pretty-spark-context](./pretty-context.png)
 
