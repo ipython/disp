@@ -1,0 +1,17 @@
+language: python 
+sudo: false
+before_install: 
+    - pip install pip --upgrade
+    - pip install ipython 
+script: 
+    - ipython -c 'import disp; disp.install()'
+    - # py.test # no test for now.
+    - ipython -c 'import disp; disp.uninstall()'
+python:
+    - "nightly"
+    - 3.6-dev
+    - 3.6
+    - 3.5
+    - 3.4
+    - 3.3
+
