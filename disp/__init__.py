@@ -1,4 +1,18 @@
+# coding: utf-8
+
+import sys
+import json
+from os import path
+
+from IPython import get_ipython, paths
 from .spark import repr_spark_context_html, repr_spark_session_html
+
+if sys.version_info < (3,):
+    FileNotFoundError = IOError
+    JSONDecodeError = ValueError
+else:
+    from json.decoder import JSONDecodeError
+
 
 def load_ipython_extension(ipython):
     """
@@ -10,15 +24,9 @@ def load_ipython_extension(ipython):
     html.for_type_by_name('pyspark.context','SparkContext', repr_spark_context_html)
     html.for_type_by_name('pyspark.sql', 'SparkSession', repr_spark_session_html)
 
-
-
 config_value = "disp"
 shell_key = "extensions"
 app_key = "InteractiveShellApp"
-
-from os import path
-import json
-
 
 def get_config():
     ip = get_ipython()
@@ -33,7 +41,7 @@ def get_config():
     try:
         with open(json_path, 'r') as f:
             config = json.load(f)
-    except (FileNotFoundError, json.decoder.JSONDecodeError):
+    except (FileNotFoundError, JSONDecodeError):
         config = {}
     return config, json_path
 
@@ -57,9 +65,6 @@ def install():
     if installed:
         print("😕 Looks like disp is already installed.😕")
         return
-
-    if get_ipython() is None:
-        log.warning(_default_warning + json_path)
 
     with open(json_path, 'w') as f:
         x = cfg.get(app_key, {}).get(shell_key, [])

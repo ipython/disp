@@ -31,3 +31,13 @@ the following objects will gain superpowers:
 ## Do you support more objects? 
 
 Do you want to submit a Pull Request? We'll probably accept it. 🤓
+
+# releasing
+
+Bump version number in `setup.py`.
+Install `twine`
+
+```
+$ python setup.py sdist bdist_wheel
+$ twine upload dist/*
+```
