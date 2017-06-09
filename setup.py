@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='disp',
-      version='0.0.2',
+      version='0.0.3',
       description='Providing default representations of common objects in Python land',
       url='http://github.com/ipython/disp',
       author='IPython developers',
