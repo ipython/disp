@@ -23,10 +23,29 @@ $ ipython -c 'import disp; disp.uninstall()'
 
 ## Supported objects
 
-the following objects will gain superpowers:
+The following objects will gain superpowers automatically:
 
  - `pyspark.context:SparkContext`
  - `pyspark.sql:SparkSession`
+
+The followings objects need to be explicitly register with
+`disp.activate_builtins()` and will work only on Python 3.6 and later:
+
+ - types
+ - functions methods (and alike)
+ - modules
+
+The following objects need to be explicitly activated individually for each
+type with `disp.activate_for(instance)`:
+ 
+ - requests.models.Response (Python 3.6+ only)
+
+A couple of other objects are secretly available on Python 3.6, but are still
+unstable so-far (dig through the source).
+
+## Example
+
+See our [example notebook](http://nbviewer.jupyter.org/github/ipython/disp/blob/master/example/Disp-Example-builtins.ipynb)
 
 ## Do you support more objects? 
 
