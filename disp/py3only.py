@@ -34,6 +34,30 @@ def repr(o):
 
 
 thecss = """
+
+/* summary::-webkit-details-marker {
+  display: none;
+}
+
+summary {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  
+} */
+
+.rendered_html pre, .rendered_html code {
+    background-color: transparent; /* bug in notebook css */
+}
+
+.rendered_html .jupyter-extra-info ul{
+    list-style: none;
+}
+
+.jupyter-extra-info {
+    background-color: hsla(0, 0%, 5%, 0.07); 
+    padding: 0.5em;
+    border: thin solid silver;
+}
 dl.jupyter-inner-mapping-repr {
     padding-left: 1em;
     margin-bottom: 0;
@@ -65,17 +89,13 @@ ul.jupyter-flat-container-repr li{
     list-style-type: none;
 }
 
-summary > pre {
+summary > code {
     display: inline
 }
 
 ul.jupyter-flat-container-repr summary {
     margin-left: 0em;
     display: inline-block;
-}
-
-details[open] {
-    /*display: inline-block;*/
 }
 
 .rendered_html ul.jupyter-flat-container-repr {
@@ -96,11 +116,11 @@ details[open] {
     /*display: block;*/
 }
 
-details[open] ~ .jupyter-breaking-placeholder {
+details.jupyter-details[open] ~ .jupyter-breaking-placeholder {
     display: block;
 }
 
-details ~ .jupyter-breaking-placeholder {
+.jupyter-details ~ .jupyter-breaking-placeholder {
     display: inline;
 }
 .output_subarea > ul.jupyter-flat-container-repr, .output_subarea > ul.jupyter-flat-container-repr > p {
@@ -109,9 +129,9 @@ details ~ .jupyter-breaking-placeholder {
 """
 
 
-#################################################################################
+##########################################################################
 #                    Utilities                                                  #
-#################################################################################
+##########################################################################
 
 def safe(obj):
     """
@@ -136,6 +156,31 @@ def htmlify_repr(obj)-> str:
         escape(repr(obj))
 
 
+def details(summary, details_):
+    if details:
+        rsum = safe(summary)._repr_html_()
+        rdetails = safe(details_)._repr_html_()
+        return HTML(f"<details class='jupyter-details'><summary>{rsum}</summary>{rdetails}</details>")
+    else:
+        rsum = htmlify_repr(summary)
+        return HTML(f"{rsum}")
+
+
+def code(string):
+    assert isinstance(string, str)
+    return HTML(f"<code>{escape(string)}</code>")
+
+
+def well(s):
+    s = safe(s)._repr_html_()
+    return HTML('<div class="jupyter-extra-info">' + s + '</div>')
+
+
+##########################################################################
+#                           Formatters                                          #
+##########################################################################
+
+
 def html_flat_container(container: List, delims, empty) -> str:
     """Retrun an Html representation of a list with recursive HTML repr for all sub objects. 
 
@@ -149,10 +194,9 @@ def html_flat_container(container: List, delims, empty) -> str:
         last = (index == len(container) - 1)
         rpr = htmlify_repr(elem)
         pc = '<span class="post-comma">,</span>' if not last else ''
-        pl = '<br/>' if last else ''
         x.append('<li>{}{}</li>'.format(rpr, pc))
     return f"""<ul class="jupyter-flat-container-repr">
-                    <details open>
+                    <details class='jupyter-details' open>
                         <summary>{delims[0]}</summary>
                         {''.join(x)}
                     </details>
@@ -162,16 +206,16 @@ def html_flat_container(container: List, delims, empty) -> str:
             """
 
 
-def html_formatter_for_list(t): return html_flat_container(
-    t, delims='[]', empty='[]')
+def html_formatter_for_list(t):
+    return html_flat_container(t, delims='[]', empty='[]')
 
 
-def html_formatter_for_tuple(t): return html_flat_container(
-    t, delims='()', empty='()')
+def html_formatter_for_tuple(t):
+    return html_flat_container(t, delims='()', empty='()')
 
 
-def html_formatter_for_set(t): return html_flat_container(
-    t, delims='{}', empty='set({})')
+def html_formatter_for_set(t):
+    return html_flat_container(t, delims='{}', empty='set({})')
 
 
 def _inner_html_formatter_for_mapping(mapping):
@@ -194,7 +238,7 @@ def html_formatter_for_mapping(mapping, *, open=True):
     delims = '{}'
     op = 'open' if open else ''
     return f"""
-            <details {op}>
+            <details class='jupyter-details'  {op}>
                 <summary>{delims[0]}</summary>
                 {_inner_html_formatter_for_mapping(mapping)}
             </details>
@@ -224,9 +268,9 @@ def html_formatter_for_Response(req):
             <style>
                 {thecss}
             </style>
-            <details><summary><pre>{escape(repr(req))}</pre></summary>
+            <details class='jupyter-details'><summary><code>{escape(repr(req))}</code></summary>
                 {attrs}
-                 <details class="disp-requests-repr">
+                 <details class="jupyter-details">
                     <summary>Content (JSON)</summary>
                     {_inner_html_formatter_for_mapping(json_content)}
                  </details>
@@ -238,44 +282,24 @@ def html_formatter_for_Response(req):
             <style>
                 {thecss}
             </style>
-            <details><summary><pre>{escape(repr(req))}</pre></summary>
+            <details class='jupyter-details'><summary><code>{escape(repr(req))}</code></summary>
                 {attrs}
             </details>
                 """
 
 
-def details(summary, details_):
-    if details:
-        rsum = safe(summary)._repr_html_()
-        rdetails = safe(details_)._repr_html_()
-        return HTML(f"<details><summary>{rsum}</summary>{rdetails}</details>")
-    else:
-        rsum = htmlify_repr(summary)
-        return HTML(f"{rsum}")
-
-
-def pre(string):
-    assert isinstance(string, str)
-    return HTML(f"<pre>{escape(string)}</pre>")
-
-
-def well(s):
-    s = safe(s)._repr_html_()
-    return HTML('<div class="well">' + s + '</div>')
-
-
 def gen_help(obj):
     doc = next(filter(None, (x.__doc__ for x in type(obj).mro())))
     return f"""
-    <pre title='{escape(doc)}'>{escape(repr(obj))}<pre>
+    <code title='{escape(doc)}'>{escape(repr(obj))}<code>
     """
 
 
 def general_repr(obj):
     return f'<style>{thecss}</style>' +\
-           f'<details><summary><pre>{escape(repr(obj))}<pre></summary>' +\
+           f'<details class="jupyter-details"><summary><code>{escape(repr(obj))}<code></summary>' +\
            _inner_html_formatter_for_mapping({k: v for (k, v) in vars(obj).items() if not k.startswith('_')}) +\
-        '</details>'
+           '</details>'
 
 
 def html_formatter_for_type(obj):
@@ -285,16 +309,17 @@ def html_formatter_for_type(obj):
         mro = ()
     if len(mro) > 1:
         mime = get_repr_mimebundle(mro[1], include='text/html').data
-        return f'<details><summary><pre>{escape(repr(obj))}</pre></summary>'\
+        return f'<style>{thecss}</style>' + \
+            f'<details class="jupyter-details" ><summary><code>{escape(repr(obj))}</code></summary>'\
             + well(HTML(f"""
-                <p><pre alpha>{obj.__doc__ or ''}</pre></p>
+                <p><code alpha>{obj.__doc__ or ''}</code></p>
                 <p> Inherit from :</p>
                 <ul>
                   <li>{mime.get('text/html')}</li>
                 </ul>"""))._repr_html_()\
             + '</details>'
     else:
-        return f'<style>{thecss}</style>' + f'<pre>{escape(repr(obj))}</pre>'
+        return f'<style>{thecss}</style>' + f'<code>{escape(repr(obj))}</code>'
 
 
 def html_formatter_for_builtin_function_or_method(obj):
@@ -305,14 +330,13 @@ def html_formatter_for_builtin_function_or_method(obj):
     res.pop('string_form')
     res.pop('base_class')
     if res.get('definition', None):
-        res['definition'] = pre(obj.__name__ + res['definition'])
+        res['definition'] = code(obj.__name__ + res['definition'])
     if docstring != '<no docstring>':
-        res['docstring'] = pre(docstring)
+        res['docstring'] = code(docstring)
     else:
         del res['docstring']
-    # return repr(details(repr(obj), htmlify_repr(res)))
-    return f'<style>{thecss}</style>' + htmlify_repr(details(HTML(escape(repr(obj))), HTML('<div class="well">' + _inner_html_formatter_for_mapping(res) + '<div>')))
+    return f'<style>{thecss}</style>' + htmlify_repr(details(code(repr(obj)), well(HTML(_inner_html_formatter_for_mapping(res)))))
 
 
 def html_formatter_for_module(obj):
-    return f'<style>{thecss}</style>' + details(HTML(escape(repr(obj))), well(pre(obj.__doc__ or '')))._repr_html_()
+    return f'<style>{thecss}</style>' + details(code(repr(obj)), well(code(obj.__doc__ or '')))._repr_html_()
