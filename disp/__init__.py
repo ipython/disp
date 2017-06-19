@@ -1,4 +1,36 @@
 # coding: utf-8
+"""
+Rich display for a variety of Python objects.
+
+Use the followign to enable permanently.
+
+>>> import disp; disp.install()
+
+
+The following activate rich repr on a couple of builtins types:
+
+    - functions/methods
+    - types
+    - modules
+
+>>> import disp; disp.activate_builtins()
+
+As this may have side-effect the setting does not persist across sessions
+
+
+Some object are not enabled by default, you can activate with:
+
+>>> import disp; disp.activate_for(something)
+
+For example, a `requests`'s response. 
+
+>>> import requests
+>>> response = requests.get(...)
+>>> disp.activate+for(response)
+>>> response
+
+
+"""
 
 import sys
 import json
@@ -23,6 +55,50 @@ def load_ipython_extension(ipython):
 
     html.for_type_by_name('pyspark.context','SparkContext', repr_spark_context_html)
     html.for_type_by_name('pyspark.sql', 'SparkSession', repr_spark_session_html)
+
+
+def activate_builtins():
+    """
+    Install html_repr for a couple of the builtin
+    """
+    if sys.version_info > (3, 6):
+        ipython = get_ipython()
+        html = ipython.display_formatter.formatters['text/html']
+        import types
+        from .py3only import html_formatter_for_builtin_function_or_method, html_formatter_for_type, html_formatter_for_module
+        html.for_type(types.FunctionType, html_formatter_for_builtin_function_or_method)
+        html.for_type(types.BuiltinFunctionType, html_formatter_for_builtin_function_or_method)
+        html.for_type(types.BuiltinMethodType, html_formatter_for_builtin_function_or_method)
+        html.for_type(types.MethodType, html_formatter_for_builtin_function_or_method)
+        html.for_type(types.ModuleType, html_formatter_for_module)
+
+        html.for_type(type, html_formatter_for_type)
+
+
+def activate_for(obj):
+    ip = get_ipython()
+    html = ip.display_formatter.formatters['text/html']
+
+    if sys.version_info < (3,6):
+        raise RuntimeError('Sorry need python 3.6 or greater')
+    else:
+        from . import py3only
+    if type(obj) is type:
+        target = obj
+    else:
+        target = type(obj)
+
+    attr = getattr(py3only, 'html_formatter_for_'+target.__name__.replace('.', '_'))
+    html.for_type(target, attr)
+
+def gen_help(obj):
+    ip = get_ipython()
+    from . import py3only
+    html = ip.display_formatter.formatters['text/html']
+    html.for_type(type(obj), py3only.gen_help)
+
+
+    
 
 config_value = "disp"
 shell_key = "extensions"
